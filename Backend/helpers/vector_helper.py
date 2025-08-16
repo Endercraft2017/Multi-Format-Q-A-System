@@ -69,27 +69,31 @@ def search_history(query: List[float], top_k: int = 2):
     results.sort(key=lambda x: x["score"], reverse=True)
     return results[:top_k]
 
-def search_in_document(document_name: str, query, top_k: int = 2):
+def search_in_document(document_names: list[str], query, top_k: int = 2):
     """
-    Search a specific document by ID using semantic similarity.
-    Returns top-k most relevant chunks.
+    Search specific documents by name using semantic similarity.
+    Returns top-k most relevant chunks across all documents.
     """
-
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
-    c.execute("SELECT chunk, embedding FROM documents WHERE source = ?", (document_name,))
-    rows = c.fetchall()
-    conn.close()
 
     results = []
-    for chunk_text, emb_str in rows:
-        emb = json.loads(emb_str) if emb_str else None
-        if emb:
-            score = cosine_similarity(query, emb)
-            results.append((document_name, chunk_text, score))
+    for document_name in document_names:
+        c.execute("SELECT chunk, embedding FROM documents WHERE source = ?", (document_name,))
+        rows = c.fetchall()
 
+        for chunk_text, emb_str in rows:
+            emb = json.loads(emb_str) if emb_str else None
+            if emb:
+                score = cosine_similarity(query, emb)
+                results.append((document_name, chunk_text, score))
+
+    conn.close()
+
+    # Sort across all documents
     results.sort(key=lambda x: x[2], reverse=True)
     return results[:top_k]
+
 
 # ---------- Store ----------
 def store_document_chunks(doc_name: str, chunks: List[str]):

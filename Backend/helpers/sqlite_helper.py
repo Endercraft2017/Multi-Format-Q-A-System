@@ -68,14 +68,12 @@ def search_by_source(source: str) -> List[Tuple[int, str, str, List[float]]]:
     conn.close()
     return [(r[0], r[1], r[2], json.loads(r[3])) for r in rows]
 
-
 def delete_source(source: str):
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     c.execute("DELETE FROM documents WHERE source = ?", (source,))
     conn.commit()
     conn.close()
-
 
 # ---------- Q&A History Functions ----------
 def add_qa_entry(source: str, question: str, answer: str, embedding: List[float]):
@@ -152,6 +150,15 @@ def rename_document(source: str, new_name: str):
     c = conn.cursor()
     c.execute("UPDATE documents SET source = ? WHERE source = ?", (new_name, source))
     c.execute("UPDATE qa_history SET source = ? WHERE source = ?", (new_name, source))
+    conn.commit()
+    conn.close()
+    return True
+
+def delete_document(source: str):
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute("DELETE FROM documents WHERE source = ?", (source,))
+    c.execute("DELETE FROM qa_history WHERE source = ?", (source,))
     conn.commit()
     conn.close()
     return True

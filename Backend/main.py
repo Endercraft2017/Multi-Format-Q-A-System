@@ -1,4 +1,5 @@
 from fastapi import FastAPI, UploadFile, File, HTTPException, Body, Query, Form
+from typing import List
 from fastapi.responses import JSONResponse
 from pathlib import Path
 import os
@@ -6,7 +7,7 @@ import uvicorn
 from fastapi.staticfiles import StaticFiles
 from helpers.extraction_helper import detect_mime, ALLOWED_EXTS
 from helpers.document_loader import load_document
-from helpers.sqlite_helper import init_db, list_documents, list_history, add_qa_entry, rename_document
+from helpers.sqlite_helper import init_db, list_documents, list_history, add_qa_entry, rename_document, delete_document
 from helpers.vector_helper import search_documents, search_history, search_in_document
 from helpers.llm import generate_response, embed_text
 
@@ -113,10 +114,44 @@ def rename_document_endpoint(
     document_name: str = Form(...),
     new_name: str = Form(...)
 ):
+    print(f"Renaming document: {document_name} -> {new_name}")
+
+    old_path = UPLOADS_DIR / document_name
+    new_name = sanitize_filename(new_name)
+    new_path = UPLOADS_DIR / new_name
+
+    if not old_path.exists():
+        raise HTTPException(status_code=404, detail="Original file not found")
+
+    if new_path.exists():
+        raise HTTPException(status_code=400, detail="New file already exists")
+
+    try:
+        os.rename(old_path, new_path)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Rename failed: {e}")
+
     success = rename_document(document_name, new_name)
+
     if not success:
         raise HTTPException(status_code=400, detail="Failed to rename document")
+
     return {"status": "success", "old_name": document_name, "new_name": new_name}
+
+@app.post("/document/delete")
+def delete_document_endpoint(document_name: str = Form(...)):
+    print(f"Deleting document: {document_name}")
+
+    path = UPLOADS_DIR / document_name
+    if not path.exists():
+        raise HTTPException(status_code=404, detail="File not found")
+    
+    try:
+        os.remove(path)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Delete failed: {e}")
+
+    return delete_document(document_name)
 
 @app.get("/history")
 def get_history():
@@ -129,33 +164,26 @@ def search_history_endpoint(q: str = Query(..., min_length=1)):
     return search_history(q)
 
 @app.post("/search-doc")
-def search_document(document_name: str, query: str):
-    """Search inside a specific document."""
+def search_document(document_names: List[str] = Form(...), query: str = Form(...)):
+    """Search inside one or more specific documents."""
 
     if not query.strip():
         raise HTTPException(status_code=400, detail="Question cannot be empty")
     
     source_list = [doc['source'] for doc in list_documents()]
-    if document_name not in source_list:
-        raise HTTPException(status_code=404, detail="Document not found")
+    invalid_docs = [doc for doc in document_names if doc not in source_list]
+    if invalid_docs:
+        raise HTTPException(status_code=404, detail=f"Document(s) not found: {', '.join(invalid_docs)}")
 
     try:
-        # Step 1: Embed the query
         q_embedding = embed_text(query)
 
-        # Step 2: Retrieve relevant chunks as tuples (doc_name, chunk_text, score)
-        results = search_in_document(document_name, q_embedding)
-
+        results = search_in_document(document_names, q_embedding)
         if not results:
             return {"question": query, "answer": "No relevant document chunks found.", "sources": None}
 
-        # Step 3: Build context for LLM
         context = "\n\n".join([chunk for _, chunk, _ in results])
-
-        # Step 4: Call LLM
         answer = generate_response(context, query)
-
-        # Step 5: Save to QA history
         sources = ", ".join(set(doc_name for doc_name, _, _ in results))
         add_qa_entry(sources, query, answer, q_embedding)
 
@@ -167,7 +195,6 @@ def search_document(document_name: str, query: str):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Question processing failed: {e}")
-
 
 frontend_path = os.path.join(os.path.dirname(__file__), '..', 'Frontend')
 app.mount("/", StaticFiles(directory=frontend_path, html=True), name="Frontend")
