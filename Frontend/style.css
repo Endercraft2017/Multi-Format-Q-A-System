@@ -1,0 +1,369 @@
+/* Basic reset & sensible defaults */
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+  margin: 0;
+}
+
+:root {
+  --left-width: 30%;
+  --right-width: 70%;
+  --gap: 12px;            /* tweak if you want a gutter (e.g., 12px) */
+}
+
+/* Header bar = 10% height */
+.header-bar {
+  height: 5vh;
+  background: #4a90e2;
+  color: white;
+  display: flex;
+  align-items: center;
+  padding: 0 20px;  
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+.header-bar h1{
+  font-size: 16px;       /* adjust size */
+  font-weight: 600;        /* boldness */
+  color: #ffffff;             /* text color */
+  margin: 0;      /* spacing around it */
+  padding-bottom: 0;     /* padding below */
+  letter-spacing: 1px;     /* spacing between letters */
+}
+
+.info_text {
+  font-family: Inter, "Noto Sans", sans-serif; /* change font */
+}
+
+/* Split layout using CSS Grid for precise ratios */
+.split {
+  display: grid;
+  grid-template-columns: var(--left-width) var(--right-width);
+  height: 95vh;   /* full viewport height */
+}
+
+/* Panels */
+.panel {
+  padding: 24px;
+  overflow-y: auto;      /* scroll if content overflows */
+}
+
+/* Left Panel */
+.panel.left h2{
+  font-size: 32px;       /* adjust size */
+  font-weight: 600;        /* boldness */
+  color: #0d141c;             /* text color */
+  margin: 0 0 12px 0;      /* spacing around it */
+  padding-bottom: 8px;     /* padding below */
+  letter-spacing: 1px;     /* spacing between letters */
+}
+
+/* Upload button */
+.upload-btn {
+  display: inline-block;
+  padding: 10px 16px;
+  background-color: #4a90e2;
+  color: white;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  margin-bottom: 16px;
+  text-align: center;
+  transition: background 0.3s;
+}
+
+.upload-btn:hover {
+  background-color: #357abd;
+}
+
+/* Drag & Drop Zone */
+#drop-zone {
+  border: 2px dashed #4a90e2;
+  border-radius: 6px;
+  padding: 24px;
+  text-align: center;
+  color: #666;
+  background: #f9f9f9;
+  font-size: 0.95rem;
+  line-height: 1.4;
+  transition: background 0.3s, border-color 0.3s;
+}
+
+/* Add a hover effect for visual feedback */
+#drop-zone:hover {
+  background: #b8babd;
+  border-color: #357abd;
+}
+
+#drop-zone.highlight {
+  background: #b8babd;
+  border-color: #357abd;
+}
+
+#drop-text{
+  font-size: large;
+  font-weight: 600;
+  color: #0d141c;
+}
+
+#file-upload-label {
+  font-weight: 600;
+  color: #0d141c;
+}
+
+/* File list container */
+.file-list {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-height: 200px; /* you can change or remove this */
+  overflow-y: auto; /* makes it scrollable if too many files */
+  padding-right: 5px; /* space for scrollbar */
+  font-size: 16px;
+}
+
+/* File item */
+.file-item {
+  display: flex;
+  align-items: center;   /* vertical center */
+  justify-content: space-between; /* space between file icon/name and the button */
+  margin: 12px;
+  background: #b4c1d4;
+  border-radius: 16px;
+  padding: 8px 12px;
+}
+
+.file-item.selected {
+  background: #4a90e2;
+}
+
+.file-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.file-item:hover {
+  background: #4a90e2;
+}
+
+.file-icon {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 4rem;
+  height: 4rem;
+  margin-right: 4px;
+  flex-shrink: 0;
+}
+
+.file-name {
+  color: #0d141c;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-family: Inter, "Noto Sans", sans-serif;
+  white-space: nowrap;
+  line-height: 1;
+}
+
+.settings-icon {
+  width: 24px;   /* adjust size to your liking */
+  height: 24px;
+}
+
+.file-setting {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 24px;
+  color: #0d141c;
+  font-weight: 500;
+  font-family: Inter, "Noto Sans", sans-serif;
+  white-space: nowrap;
+  line-height: 1;
+}
+
+.file-menu {
+  position: absolute;
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  padding: 6px 0;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  display: none; /* hidden by default */
+  z-index: 1000;
+}
+
+.file-menu button {
+  display: block;
+  width: 100%;
+  padding: 8px 16px;
+  background: none;
+  border: none;
+  text-align: left;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.file-menu button:hover {
+  background: #f0f0f0;
+}
+
+
+/* Just to visualize the split; remove or change as you like */
+.left { 
+  background: #e6f0ff; 
+  overflow-y: auto;
+  position: relative;
+}
+
+.left::after {
+  content: "";
+  position: absolute;
+  top: 32px;             /* gap at the top */
+  bottom: 32px;          /* gap at the bottom */
+  right: 0;              /* stick to the right edge */
+  width: 1.5px;            /* border thickness */
+  background: #4a90e2;   /* border color */
+}
+
+/* Right Panel */
+.right { 
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 24px;
+  background: #e6f0ff;
+}
+
+/* Keep right panel content stacked */
+/* Right panel content should stack vertically */
+.panel.right .content {
+  display: flex;
+  flex-direction: column;
+  height: 100%; /* take full panel height */
+}
+
+/* Style the question form */
+.question-bar {
+  display: flex;
+  gap : 8px;
+  align-items: flex-end;
+}
+
+.question-bar textarea {
+  flex: 1;
+  padding: 8px;
+  border: 1px solid #e6f0ff;
+  border-radius: 8px;
+  resize: none; /* prevent manual drag resize */
+  min-height: 40px; /* base height */
+  max-height: 150px; /* cap growth */
+  overflow-y: auto; /* scroll if too long */
+  font-family: Inter, "Noto Sans", sans-serif;
+  font-size: 14px;
+  background: #b4c1d4;
+} 
+
+.question-bar textarea:focus {
+  outline: none;
+  border-color: none;  /* optional: custom border color when typing */
+  box-shadow: none;       /* removes glow on some browsers */
+}
+
+.question-bar button {
+  padding: 8px;
+  border: 1px solid #4a90e2;
+  background-color: #4a90e2;
+  color: white;
+  border-radius: 8px;
+  cursor: pointer;
+  height: 40px;
+}
+
+#question-form button:hover {
+  background-color: #357abd;
+}
+
+/* Style the search form */
+#search-form {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px; /* space between search and question form */
+}
+
+#search-form input {
+  flex: 1; /* make input expand */
+  padding: 8px;
+  border: none;
+  background-color: #e6f0ff;
+}
+
+#search-form input:focus {
+  outline: none;
+  border-color: none;  /* optional: custom border color when typing */
+  box-shadow: none;       /* removes glow on some browsers */
+}
+
+#search-icon {
+  margin-right: 8px;
+  display: block;
+  width: 20px;
+  height: 20px;
+  filter: invert(29%) sepia(23%) saturate(676%) hue-rotate(178deg) brightness(92%) contrast(88%);
+  /* the filter makes it match #49739c */
+}
+
+/* Container for messages */
+#message-container {
+  flex: 1; /* take up available space */
+  background: none;
+  padding: 10px;
+  margin: 10px 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Messages styling */
+.message {
+  padding: 8px 12px;
+  border-radius: 6px;
+  max-width: 80%;
+  font-size: 14px;
+}
+
+/* User messages (right side) */
+.message.user {
+  font-family: Inter, "Noto Sans", sans-serif;
+  align-self: flex-end;
+  background: #4a90e2;
+  color: white;
+}
+
+/* Bot messages (left side) */
+.message.bot {
+  font-family: Inter, "Noto Sans", sans-serif;
+  align-self: flex-start;
+  background: #e7edf4;
+  color: #0d141c;
+}
+
+/* Responsive: stack on small screens (right on top) */
+@media (max-width: 768px) {
+  .split {
+    grid-template-columns: 1fr;
+    grid-auto-rows: minmax(40vh, auto);
+  }
+  .left { order: -1; } /* show right panel first on mobile */
+}

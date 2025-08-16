@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Q&A System</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <!-- Header -->
+    <header class="header-bar">
+      <h1 class = "info_text">Q&A System</h1>
+    </header>
+
+    <!-- Main Split Layout -->
+    <main class="split">
+      <section class="panel left">
+        <h2 class = "info_text">Files</h2>
+
+        <div id="upload-container">
+          <!-- Drag & Drop Zone -->
+           <div id="drop-zone">
+            <p id="drop-text" class = "info_text">Drag and drop files here</p>
+            <p id="or-text" class = "info_text">Or click to upload</p>
+
+          <!-- File Upload Button -->
+          <label for="file-upload" id="file-upload-label" class = "info_text">Upload File</label>
+          <input
+            type="file"
+            id="file-upload"
+            accept=".pdf,.docx,.txt,.csv"
+            hidden
+          />
+        </div>
+
+        <!-- File List Container -->
+        <div id="file-list"></div>
+      </section>
+
+      <section class="panel right">
+        <div class="content">
+
+          <!-- Search Form -->
+          <form id="search-form" class = "search-bar">
+            <div id="search-icon">
+              <img src=".\Resources\Icon\search.svg" alt="Search Icon" />
+            </div>
+            <label for="search"></label>
+            <input 
+            type="text" 
+            id="search" 
+            name="search" 
+            placeholder="Search..."
+            required 
+            />
+          </form>
+
+          <!-- Chat History / Messages -->
+          <div id="message-container">
+            <!-- Example messages -->
+            <div class="message user">Hello, how are you?</div>
+            <div class="message bot">I’m good! How can I help you today?</div>
+            <div class="message user">Can you summarize this PDF?</div>
+          </div>
+
+          <!-- Qestion Form -->
+          <form id="question-form" class = "question-bar">
+            <label for="question"></label>
+            <textarea 
+            id="question" 
+            name="question" 
+            rows = "1"
+            placeholder="Ask a question..."
+            required 
+            ></textarea>
+            <button type="submit">Ask</button>
+          </form>
+        </div>
+      </section>
+    </main>
+    <script src="script.js"></script>
+  </body>
+</html>

@@ -1,0 +1,20 @@
+# Treat SVGs as text, always use LF in repo
+Frontend/Resources/Icon/*.svg text eol=lf
+
+# Optional: if you have other text files, ensure consistent LF
+*.txt text eol=lf
+*.html text eol=lf
+*.css text eol=lf
+*.js text eol=lf
+
+# Optional: treat binaries properly (no line ending conversion)
+*.png binary
+*.jpg binary
+*.ico binary
+*.pdf binary
+
+# Force LF in repo for text files
+*.html text eol=lf
+*.css text eol=lf
+*.js text eol=lf
+*.svg text eol=lf

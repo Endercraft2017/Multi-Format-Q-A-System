@@ -1,0 +1,120 @@
+## Quick summary / goal
+
+User uploads documents (PDF, DOCX, TXT, CSV). App extracts text and tabular data, chunks and embeds it, stores embeddings + metadata in a vector DB, and answers user queries via an LLM + retrieval. UI shows uploaded documents, searchable history, and past Q\&A.
+
+---
+
+## Recommended stack (local-first)
+
+* **Backend**: Python (FastAPI or Flask).
+* **Frontend**: React or simple HTML+Tailwind (since you like clean UI/UX).
+* **Document parsing**:
+
+  * PDFs: `pdfplumber` / `PyMuPDF` (good for text + table extraction). ([GitHub][1], [GeeksforGeeks][2])
+  * DOCX: `python-docx`.
+  * CSV/TXT: `pandas` / plain read.
+* **Chunking / text processing**: sentence/paragraph splitter + overlap (e.g., 500 tokens, 100 token overlap).
+* **Embeddings**:
+
+  * **Local / open-source**: `sentence-transformers` (e.g. `all-MiniLM-L6-v2`) — fast, small (\~384-dim), great for local embedding generation. ([Hugging Face][3], [SentenceTransformers][4])
+  * **Optional cloud**: OpenAI `text-embedding-3-*` if you want higher-quality embeddings via API. ([OpenAI Platform][5])
+* **Vector DB** (pick one based on scale & ease):
+
+  * **Chroma** — lightweight, great for local/dev and simple scaling. ([Chroma][6], [Oracle][7])
+  * **Qdrant** — production-ready, Rust-based, good performance & cloud option. ([Qdrant][8], [GitHub][9])
+  * **Weaviate / Milvus / pgvector** are alternatives depending on features and scale. (Many recent comparisons exist.) ([Medium][10], [LakeFS][11])
+* **LLM**: your local LLM via `llama.cpp` (generate answer + use retrieval augmentation). If you want higher quality answers, chain a retrieval-augmented prompt to the LLM that includes top-k retrieved chunks.
+* **Storage**: store original files (S3/MinIO or filesystem), metadata and QA history in Postgres or SQLite (for portfolio/demo SQLite is fine).
+
+---
+
+## Minimal viable product (MVP) roadmap — 6 sprints (small, testable steps)
+
+1. **Sprint 1 — File upload & text extraction**
+
+   * UI: upload PDF/DOCX/TXT/CSV.
+   * Backend endpoints: `/upload` saves file and extracts raw text (use `pdfplumber`/`PyMuPDF` + `python-docx` + `pandas`). Test with 10 files. ([GitHub][1], [GeeksforGeeks][2])
+
+2. **Sprint 2 — Chunking + embeddings**
+
+   * Implement chunker (token-aware if possible).
+   * Generate embeddings locally with `sentence-transformers` `all-MiniLM-L6-v2`. Store vector + chunk metadata. ([Hugging Face][3], [SentenceTransformers][4])
+
+3. **Sprint 3 — Vector DB integration**
+
+   * Integrate Chroma (easy local) or Qdrant (if you want a separate service). Create collection/index, write vectors, and query for nearest neighbors. ([Chroma][6], [Qdrant][8])
+
+4. **Sprint 4 — QA pipeline**
+
+   * Query endpoint: user question → retrieve top-k chunks → assemble prompt (system + retrieved context + question) → LLM call (local `llama.cpp`) → return answer + citations (chunk IDs/pages).
+   * Add confidence or source links.
+
+5. **Sprint 5 — UI: document & history search**
+
+   * Sidebar: list uploaded docs (search by filename, tags, date).
+   * History: list past Q\&A (query, short answer, source doc snippet). Add pagination & search.
+
+6. **Sprint 6 — polish & demo**
+
+   * Add file previews, highlight source snippets in answers, allow re-run question on a document, export chat history (JSON). Add small E2E tests.
+
+---
+
+## Design: data flow (short)
+
+1. Upload file → extract text & tables → normalize (clean whitespace, preserve page/section metadata).
+2. Split into chunks with metadata `{doc_id, page, chunk_index, char_start, char_end}`.
+3. Embed chunks → upsert into vector DB with metadata.
+4. Query: embed question → vector DB top-k → pass contexts to LLM for answer generation → store QA record.
+
+---
+
+## Concrete recommendations & why (with sources)
+
+* **Local embeddings first**: `all-MiniLM-L6-v2` is small, fast, and well-suited for semantic search on a laptop — great for a portfolio demo. ([Hugging Face][3], [SentenceTransformers][4])
+* **Start with Chroma locally**: easiest local dev setup, then swap to Qdrant for heavier loads or if you want a managed cloud later. ([Chroma][6], [Qdrant][8])
+* **Use `pdfplumber` / PyMuPDF** for complex PDFs (table extraction / accurate layout). `pdfplumber` is commonly recommended for non-scanned PDFs. ([GitHub][1], [GeeksforGeeks][2])
+
+---
+
+## UX / UI feature checklist (good portfolio polish)
+
+* Drag & drop upload + progress bar.
+* Document list with thumbnails, upload date, page count.
+* Search bar (global across docs) + filters (filetype, date).
+* Q\&A chat per document and global Q\&A.
+* Show source snippets and “open original” button.
+* History panel with export (CSV/JSON).
+* Small demo mode: “Try sample documents” for reviewers.
+
+---
+
+## Security & practical notes
+
+* Sanitize uploads, limit file size (e.g., 50MB for demo), reject executables.
+* For PII, warn users. For local portfolio use, store data locally and clearly mark it ephemeral.
+
+---
+
+## Next steps — which do you want me to do now?
+
+Pick one and I’ll produce the artifact in this conversation (code + file scaffold or a step checklist you can follow):
+
+A) Generate a **FastAPI + minimal React** scaffold for upload → extract → local embedding → upsert to Chroma with example code snippets and commands.
+B) Produce a **detailed implementation plan** (file-by-file, endpoints, DB schema, chunker code, prompt templates).
+C) Start writing the **document parser module** (Python) that handles PDF/DOCX/CSV/TXT extraction (ready to drop into your repo).
+D) Or do you want a narrower choice (e.g., “Make the chunker + embedding code using sentence-transformers and Chroma”)?
+
+Say which one (A/B/C/D) and whether you want the stack **local-only** or **allow optional cloud APIs** (OpenAI embeddings / managed vector DB) — I’ll start producing code & steps immediately.
+
+[1]: https://github.com/jsvine/pdfplumber?utm_source=chatgpt.com "jsvine/pdfplumber - and easily extract text and tables. - GitHub"
+[2]: https://www.geeksforgeeks.org/python/extract-text-from-pdf-file-using-python/?utm_source=chatgpt.com "Extract text from PDF File using Python - GeeksforGeeks"
+[3]: https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2?utm_source=chatgpt.com "sentence-transformers/all-MiniLM-L6-v2 - Hugging Face"
+[4]: https://www.sbert.net/docs/sentence_transformer/pretrained_models.html?utm_source=chatgpt.com "Pretrained Models — Sentence Transformers documentation"
+[5]: https://platform.openai.com/docs/models/text-embedding-3-large?utm_source=chatgpt.com "text-embedding-3-large - OpenAI Platform"
+[6]: https://www.trychroma.com/?utm_source=chatgpt.com "Chroma"
+[7]: https://www.oracle.com/database/vector-database/chromadb/?utm_source=chatgpt.com "What Is Chroma? An Open Source Embedded Database - Oracle"
+[8]: https://qdrant.tech/?utm_source=chatgpt.com "Qdrant - Vector Database - Qdrant"
+[9]: https://github.com/qdrant/qdrant?utm_source=chatgpt.com "GitHub - qdrant/qdrant: Qdrant - GitHub"
+[10]: https://medium.com/tech-ai-made-easy/vector-database-comparison-pinecone-vs-weaviate-vs-qdrant-vs-faiss-vs-milvus-vs-chroma-2025-15bf152f891d?utm_source=chatgpt.com "Vector Database Comparison: Pinecone vs Weaviate vs Qdrant vs ..."
+[11]: https://lakefs.io/blog/12-vector-databases-2023/?utm_source=chatgpt.com "Best 17 Vector Databases for 2025 [Top Picks] - lakeFS"

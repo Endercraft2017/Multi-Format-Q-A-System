@@ -1,0 +1,9 @@
+# Ignore GGUF model files
+*.gguf
+
+# Ignore downloaded models folder (if you keep them in /models)
+models/
+
+# Optional: Ignore Python cache
+__pycache__/
+*.pyc

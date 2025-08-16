@@ -1,0 +1,3 @@
+# Optional: Ignore virtual environments
+.venv/
+env/
