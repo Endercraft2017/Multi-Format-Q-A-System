@@ -151,7 +151,7 @@ fileMenu.querySelector(".menu-rename").addEventListener("click", async () => {
   const oldName = fileMenu.dataset.fileName;
   oldName_no_ext = oldName.split('.').slice(0, -1).join('.');
   const ext = oldName.split('.').pop();
-  const newName = prompt("Enter new name for the file:", oldName_no_ext);
+  let newName = prompt("Enter new name for the file:", oldName_no_ext);
   newName = newName + '.' + ext;
 
   if (!newName || newName === oldName) {
