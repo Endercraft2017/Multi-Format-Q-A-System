@@ -124,7 +124,7 @@ GET /chat/search            # Search chat history
 3. **Ask a Question**
 
    - Type into the expandable question bar.
-   - Press **Ask** or hit **Enter**.
+   - Press **Ask**.
    - View AI-generated answers in chat format.
 
 4. **Search Past Q/&A**
